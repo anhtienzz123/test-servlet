@@ -8,7 +8,7 @@ import org.apache.catalina.startup.Tomcat;
 import comjava.annotiation.RequestMapping;
 import comjava.controller.ProductController;
 import comjava.controller.TestServlet;
-import comjava.core.CustomHttpServlet;
+import comjava.core.ControllerHttpServlet;
 import jakarta.servlet.http.HttpServlet;
 
 public class Main {
@@ -36,7 +36,7 @@ public class Main {
 
         // add ProductController
         ProductController productController = new ProductController();
-        HttpServlet productServlet = new CustomHttpServlet(productController);
+        HttpServlet productServlet = new ControllerHttpServlet(productController);
         String productServletName = ProductController.class.getName();
         String productUrl = ProductController.class.getDeclaredAnnotation(RequestMapping.class).value();
         tomcat.addServlet(contextPath, productServletName, productServlet);
