@@ -1,26 +1,24 @@
 package comjava;
 
+import java.io.File;
+import java.util.Optional;
 import org.apache.catalina.Context;
 import org.apache.catalina.LifecycleException;
-import org.apache.catalina.WebResourceRoot;
-import org.apache.catalina.startup.ContextConfig;
 import org.apache.catalina.startup.Tomcat;
-import org.apache.catalina.webresources.StandardRoot;
-import comjava.controller.SimpleServlet;
+import comjava.annotiation.RequestMapping;
+import comjava.controller.ProductController;
+import comjava.controller.TestServlet;
+import comjava.core.CustomHttpServlet;
 import jakarta.servlet.http.HttpServlet;
-import java.io.File;
-import java.net.URL;
-import java.util.Optional;
 
 public class Main {
     public static final Optional<String> PORT = Optional.ofNullable(System.getenv("PORT"));
     public static final Optional<String> HOSTNAME = Optional.ofNullable(System.getenv("HOSTNAME"));
-    
-    public static void main( String[] args ) throws LifecycleException
-    {
+
+    public static void main(String[] args) throws LifecycleException {
         Tomcat tomcat = new Tomcat();
         tomcat.setBaseDir("temp");
-        tomcat.setPort(Integer.valueOf(PORT.orElse("8280") ));
+        tomcat.setPort(Integer.valueOf(PORT.orElse("8280")));
         tomcat.setHostname(HOSTNAME.orElse("localhost"));
 
         String contextPath = "/";
@@ -28,16 +26,27 @@ public class Main {
 
         Context context = tomcat.addContext(contextPath, docBase);
 
-        HttpServlet servlet = new SimpleServlet();
-        String servletName = "HelloWorld";
-        String urlPattern = "/helloWorld";
+        // add TestServlet
+        HttpServlet servlet = new TestServlet();
+        String servletName = "test";
+        String urlPattern = "/test";
 
-        tomcat.addServlet(contextPath, servletName, servlet);      
+        tomcat.addServlet(contextPath, servletName, servlet);
         context.addServletMappingDecoded(urlPattern, servletName);
 
+        // add ProductController
+        ProductController productController = new ProductController();
+        HttpServlet productServlet = new CustomHttpServlet(productController);
+        String productServletName = ProductController.class.getName();
+        String productUrl = ProductController.class.getDeclaredAnnotation(RequestMapping.class).value();
+        tomcat.addServlet(contextPath, productServletName, productServlet);
+        context.addServletMappingDecoded(productUrl, productServletName);
+        
+        // start server
         tomcat.getConnector();
         tomcat.start();
         tomcat.getServer().await();
 
-    }  
+    }
+    
 }
